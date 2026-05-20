@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Login | OptiCore AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    <section class="glass-effect" style="border-radius: 24px; padding: 3rem;">
+        <h2 class="result-title" style="margin-bottom: 2rem;">Welcome Back</h2>
+        
+        <form action="{{ url_for('login') }}" method="POST">
+            <div style="margin-bottom: 1.5rem;">
+                <label for="email" class="label" style="display: block; margin-bottom: 0.5rem;">Email Address</label>
+                <input type="email" id="email" name="email" required class="form-input" placeholder="you@example.com">
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <label for="password" class="label" style="display: block; margin-bottom: 0.5rem;">Password</label>
+                <input type="password" id="password" name="password" required class="form-input" placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full">Sign In</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary);">
+            Don't have an account? <a href="{{ url_for('register') }}" style="color: #38bdf8; text-decoration: none;">Register here</a>
+        </p>
+    </section>
+</div>
+
+<style>
+    .form-input {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .form-input:focus {
+        border-color: #38bdf8;
+    }
+</style>
+{% endblock %}

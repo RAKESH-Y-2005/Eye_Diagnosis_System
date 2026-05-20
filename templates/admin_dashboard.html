@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% set use_sidebar = True %}
+
+{% block title %}System Admin | OptiCore AI{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link active"><i class="fa-solid fa-server"></i> Command Center</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fa-solid fa-user"></i> Admin Profile</a></li>
+{% endblock %}
+
+{% block app_content %}
+<div class="flex items-center" style="justify-content: space-between; margin-bottom: 2rem;">
+    <div>
+        <h2>System Command Center</h2>
+        <p class="text-secondary">Hospital & Telehealth Management Portal</p>
+    </div>
+    <div class="flex items-center gap-1">
+        <span class="badge badge-success"><i class="fa-solid fa-shield-halved"></i> Sec-Level: 0 (Admin)</span>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="admin-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 2rem; overflow-x: auto; padding-bottom: 0.5rem;">
+    <button class="tab-btn active" onclick="openTab('tab-dashboard')"><i class="fa-solid fa-chart-pie"></i> Analytics</button>
+    <button class="tab-btn" onclick="openTab('tab-doctors')"><i class="fa-solid fa-user-doctor"></i> Doctor Mgmt</button>
+    <button class="tab-btn" onclick="openTab('tab-patients')"><i class="fa-solid fa-users"></i> Patient Mgmt</button>
+    <button class="tab-btn" onclick="openTab('tab-appointments')"><i class="fa-solid fa-calendar-check"></i> Appointments & Emergency</button>
+    <button class="tab-btn" onclick="openTab('tab-ai')"><i class="fa-solid fa-brain"></i> AI Monitoring & Reports</button>
+    <button class="tab-btn" onclick="openTab('tab-system')"><i class="fa-solid fa-gears"></i> System & Comms</button>
+</div>
+
+<style>
+    .tab-btn { background: none; border: none; color: #94a3b8; font-family: var(--font-body); font-size: 1rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.2s; white-space: nowrap; }
+    .tab-btn:hover { background: rgba(255,255,255,0.05); color: #f8fafc; }
+    .tab-btn.active { background: rgba(56, 189, 248, 0.1); color: #38bdf8; font-weight: bold; }
+    .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<!-- TAB 1: DASHBOARD & ANALYTICS -->
+<div id="tab-dashboard" class="tab-content active">
+    <!-- Stat Cards -->
+    <div class="grid-4 mb-2">
+        <div class="glass-effect data-card p-2 text-center">
+            <h3><i class="fa-solid fa-users text-primary"></i></h3>
+            <p class="text-secondary mt-1">Total Patients</p>
+            <h2 style="font-size: 2.5rem;">{{ patients|length }}</h2>
+        </div>
+        <div class="glass-effect data-card p-2 text-center">
+            <h3><i class="fa-solid fa-user-doctor text-success"></i></h3>
+            <p class="text-secondary mt-1">Active Doctors</p>
+            <h2 style="font-size: 2.5rem;">{{ doctors|length }}</h2>
+        </div>
+        <div class="glass-effect data-card p-2 text-center">
+            <h3><i class="fa-solid fa-calendar text-warning"></i></h3>
+            <p class="text-secondary mt-1">Total Appointments</p>
+            <h2 style="font-size: 2.5rem;">{{ appointments|length }}</h2>
+        </div>
+        <div class="glass-effect data-card p-2 text-center">
+            <h3><i class="fa-solid fa-file-medical text-danger"></i></h3>
+            <p class="text-secondary mt-1">AI Reports Generated</p>
+            <h2 style="font-size: 2.5rem;">{{ total_scans }}</h2>
+        </div>
+    </div>
+    
+    <!-- Chart row -->
+    <div class="grid-2 mb-2">
+        <div class="glass-effect data-card w-full">
+            <h3 class="mb-1">Platform Processing Volume (30 Days)</h3>
+            <canvas id="volumeChart" height="150"></canvas>
+        </div>
+        <div class="glass-effect data-card w-full">
+            <h3 class="mb-1">AI Detection Distribution</h3>
+            <canvas id="distributionChart" height="150"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 2: DOCTOR MANAGEMENT -->
+<div id="tab-doctors" class="tab-content">
+    <div class="glass-effect data-card w-full mb-2">
+        <div class="flex items-center" style="justify-content: space-between; margin-bottom: 1.5rem;">
+            <h3>Doctor Staff Matrix</h3>
+            <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem; text-decoration: none;"><i class="fa-solid fa-user-plus"></i> Add New Doctor</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Doctor Name</th>
+                        <th>Specialization</th>
+                        <th>Account Status (Approval)</th>
+                        <th>Registered</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in doctors %}
+                    <tr>
+                        <td style="font-weight: bold;">{{ u.full_name }} <br><span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">{{ u.email }}</span></td>
+                        <td>{{ u.specialty or 'General Practice' }}</td>
+                        <td>
+                            {% if u.is_active_account %}
+                            <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Approved</span>
+                            {% else %}
+                            <span class="badge badge-warning"><i class="fa-solid fa-hourglass"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            <form action="{{ url_for('toggle_status', user_id=u.id) }}" method="POST" style="display:inline;">
+                                {% if u.is_active_account %}
+                                <button type="submit" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; color: #ef4444; border-color: #ef4444;"><i class="fa-solid fa-ban"></i> Suspend</button>
+                                {% else %}
+                                <button type="submit" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; color: #10b981; border-color: #10b981;"><i class="fa-solid fa-unlock"></i> Approve</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center;">No doctors registered.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 3: PATIENT MANAGEMENT -->
+<div id="tab-patients" class="tab-content">
+    <div class="glass-effect data-card w-full mb-2">
+        <div style="margin-bottom: 1.5rem;">
+            <h3>Registered Patients</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Email</th>
+                        <th>Account Status</th>
+                        <th>Registered</th>
+                        <th>Control Logs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in patients %}
+                    <tr>
+                        <td style="font-weight: bold;">{{ u.full_name }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            {% if u.is_active_account %}
+                            <span class="badge badge-success">Active</span>
+                            {% else %}
+                            <span class="badge badge-danger">Blocked</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            <form action="{{ url_for('toggle_status', user_id=u.id) }}" method="POST" style="display:inline;">
+                                {% if u.is_active_account %}
+                                <button type="submit" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; color: #ef4444; border-color: #ef4444;">Block User</button>
+                                {% else %}
+                                <button type="submit" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; color: #10b981; border-color: #10b981;">Unblock</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center;">No patients registered.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 4: APPOINTMENTS & EMERGENCY -->
+<div id="tab-appointments" class="tab-content">
+    <div class="glass-effect data-card w-full mb-2" style="border-left: 4px solid #38bdf8;">
+        <h3>Mediator: Appointment Scheduling</h3>
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 1rem;">Schedule an appointment on behalf of a patient.</p>
+        <form action="{{ url_for('admin_book_appointment') }}" method="POST" class="grid-2" style="gap: 1rem;">
+            <div><label class="form-label">Patient</label><select name="patient_id" class="form-input" required><option value="">-- Select Patient --</option>{% for p in patients %}<option value="{{ p.id }}">{{ p.full_name }}</option>{% endfor %}</select></div>
+            <div><label class="form-label">Doctor</label><select name="doctor_id" class="form-input" required><option value="">-- Select Doctor --</option>{% for d in doctors %}<option value="{{ d.id }}">{{ d.full_name }}</option>{% endfor %}</select></div>
+            <div><label class="form-label">Date & Time</label><input type="datetime-local" name="appointment_date" class="form-input" required></div>
+            <div><label class="form-label">Notes</label><input type="text" name="notes" class="form-input" placeholder="e.g. Scheduled via Admin"></div>
+            <div style="grid-column: 1 / -1;"><button type="submit" class="btn btn-primary w-full"><i class="fa-solid fa-calendar-plus"></i> Book Appointment as Mediator</button></div>
+        </form>
+    </div>
+
+    <div class="glass-effect data-card w-full mb-2">
+        <h3>Platform Appointments & Queue Management</h3>
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Administer the queue and flag emergency priority cases.</p>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Urgency</th>
+                        <th>Date & Time</th>
+                        <th>Patient (ID) & Doctor (ID)</th>
+                        <th>Status</th>
+                        <th>Mediator Controls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in appointments %}
+                    <tr>
+                        <td>
+                            <form action="{{ url_for('admin_flag_emergency', app_id=appt.id) }}" method="POST">
+                                <button type="submit" class="btn" style="background:none; border:none; color: {% if appt.is_emergency %}#ef4444{% else %}#475569{% endif %}; cursor: pointer; font-size: 1.2rem;" title="Toggle Emergency Flag">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </button>
+                            </form>
+                        </td>
+                        <td style="{% if appt.is_emergency %}color: #ef4444; font-weight: bold;{% endif %}">{{ appt.appointment_date.strftime('%b %d, %Y %H:%M') }}</td>
+                        <td>P: {{ appt.patient_id }} | D: {{ appt.doctor_id }}</td>
+                        <td>
+                            <span class="badge {% if appt.status == 'completed' %}badge-success{% elif appt.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
+                                {{ appt.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <form action="{{ url_for('admin_update_appointment', app_id=appt.id) }}" method="POST" class="flex gap-1">
+                                <select name="status" class="form-input" style="padding: 0.2rem; font-size: 0.8rem; background: #0f172a; width: auto;">
+                                    <option value="pending" {% if appt.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="confirmed" {% if appt.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                    <option value="completed" {% if appt.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="cancelled" {% if appt.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                                <button type="submit" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">No appointments found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 5: AI MONITORING & REPORTS -->
+<div id="tab-ai" class="tab-content">
+    <div class="glass-effect data-card w-full mb-2">
+        <h3>AI Diagnosis Quality Control</h3>
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Verify AI predictions against the uploaded eye scans to maintain accuracy tracking.</p>
+        
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scan Image</th>
+                        <th>Report Details</th>
+                        <th>AI Prediction</th>
+                        <th>Quality Status</th>
+                        <th>QC Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>
+                            <img src="{{ url_for('static', filename=report.image_path.replace('static/','').replace('\\','/')) }}" alt="Scan" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                        </td>
+                        <td>
+                            <div style="font-weight: bold;">Patient ID: {{ report.patient_id }}</div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">{{ report.created_at.strftime('%Y-%m-%d') }}</div>
+                            <a href="{{ url_for('generate_pdf', report_id=report.id) }}" class="text-primary" style="font-size: 0.8rem;"><i class="fa-solid fa-file-pdf"></i> View PDF</a>
+                        </td>
+                        <td>
+                            <div style="font-weight: bold; color: {% if report.diagnosis_result == 'Normal' %}#10b981{% else %}#f59e0b{% endif %};">{{ report.diagnosis_result }}</div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">{{ (report.confidence_score * 100)|round(1) }}% Confidence</div>
+                        </td>
+                        <td>
+                            {% if report.verification_status == 'verified_correct' %}
+                            <span class="badge badge-success"><i class="fa-solid fa-check"></i> Verified</span>
+                            {% elif report.verification_status == 'flagged_incorrect' %}
+                            <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Flagged</span>
+                            {% else %}
+                            <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{{ url_for('admin_verify_report', report_id=report.id) }}" method="POST" class="flex gap-1">
+                                <select name="verification_status" class="form-input" style="padding: 0.2rem; font-size: 0.8rem; background: #0f172a; width: 120px;">
+                                    <option value="pending" {% if report.verification_status == 'pending' %}selected{% endif %}>Reviewing</option>
+                                    <option value="verified_correct" {% if report.verification_status == 'verified_correct' %}selected{% endif %}>Mark Correct</option>
+                                    <option value="flagged_incorrect" {% if report.verification_status == 'flagged_incorrect' %}selected{% endif %}>Flag Incorrect</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center;">No AI reports generated yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 6: SYSTEM & COMMUNICATIONS -->
+<div id="tab-system" class="tab-content">
+    <div class="grid-2 gap-2 mb-2">
+        <div class="glass-effect data-card">
+            <h3><i class="fa-solid fa-tower-broadcast text-primary"></i> Communication Center</h3>
+            <p class="text-secondary mb-1">Simulate sending batch alerts & notifications.</p>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+            <button class="btn btn-outline w-full mb-1" onclick="alert('Notification dispatched securely to all Active Doctors.')"><i class="fa-solid fa-envelope"></i> Broadcast to All Doctors</button>
+            <button class="btn btn-outline w-full mb-1" onclick="alert('Patients with pending appointments have been notified via SMS.')"><i class="fa-solid fa-mobile-screen"></i> Remind Pending Patients</button>
+        </div>
+        
+        <div class="glass-effect data-card">
+            <h3><i class="fa-solid fa-screwdriver-wrench text-warning"></i> System Core Controls</h3>
+            <p class="text-secondary mb-1">Database maintenance and model overrides.</p>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+            <a href="{{ url_for('export_core_logs') }}" class="btn btn-outline w-full mb-1" style="display:block;text-align:center;text-decoration:none;"><i class="fa-solid fa-file-csv"></i> Download CSV Logs</a>
+            <button class="btn btn-outline w-full mb-1" onclick="alert('Simulated Model Request: Fetching latest OptiCore weights from central repo...')"><i class="fa-solid fa-cloud-arrow-down"></i> Pull Latest AI Model</button>
+            <button class="btn btn-outline w-full mb-1" style="border-color: #ef4444; color: #ef4444;" onclick="alert('Simulated Action: Generating secure SQLite Dump (.bak)...')"><i class="fa-solid fa-database"></i> Trigger DB Backup</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // Chart.js existing logic wrapper
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctxLine = document.getElementById('volumeChart');
+        if(ctxLine) {
+            new Chart(ctxLine.getContext('2d'), {
+                type: 'line',
+                data: { labels: ['W1', 'W2', 'W3', 'W4'], datasets: [{ label: 'Scans', data: [12, 19, 30, 50], borderColor: '#38bdf8', borderWidth: 2, tension: 0.4 }] },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+        const ctxDoughnut = document.getElementById('distributionChart');
+        if(ctxDoughnut) {
+            new Chart(ctxDoughnut.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Normal', 'Glaucoma', 'Diabetic', 'Cataract'], datasets: [{ data: [65, 12, 14, 9], backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6'], borderWidth: 0 }] },
+                options: { responsive: true, plugins: { legend: { position: 'right' } } }
+            });
+        }
+    });
+</script>
+{% endblock %}

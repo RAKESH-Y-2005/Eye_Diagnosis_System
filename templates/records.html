@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% set use_sidebar = True %}
+
+{% block title %}Medical Records | OptiCore AI{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('dashboard') if current_user.role == 'patient' else url_for('doctor_dashboard') }}" class="sidebar-link"><i class="fa-solid fa-house"></i> Overview</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fa-solid fa-user"></i> My Profile</a></li>
+<li><a href="{{ url_for('records') }}" class="sidebar-link active"><i class="fa-solid fa-file-medical"></i> Medical Records</a></li>
+<li><a href="{{ url_for('consultations') }}" class="sidebar-link"><i class="fa-solid fa-calendar-check"></i> Consultations</a></li>
+<li><a href="{{ url_for('logout') }}" class="sidebar-link" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+{% endblock %}
+
+{% block app_content %}
+<div class="flex items-center" style="justify-content: space-between; margin-bottom: 2rem;">
+    <div>
+        <h2>Comprehensive Medical Records</h2>
+        <p class="text-secondary">Full history of all your AI optical nerve scans.</p>
+    </div>
+    {% if current_user.role == 'patient' %}
+    <a href="{{ url_for('scan') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New AI Scan</a>
+    {% endif %}
+</div>
+
+<div class="glass-effect data-card w-full">
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Scan Date</th>
+                    {% if current_user.role == 'doctor' %}
+                    <th>Patient ID</th>
+                    {% endif %}
+                    <th>Diagnosis Result</th>
+                    <th>Confidence Level</th>
+                    <th>Document</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td>{{ report.created_at.strftime('%b %d, %Y - %H:%M') }}</td>
+                    {% if current_user.role == 'doctor' %}
+                    <td><span class="text-secondary">#PT-{{ report.patient_id }}</span></td>
+                    {% endif %}
+                    <td class="{% if report.diagnosis_result != 'Normal' %}text-danger{% else %}text-accent{% endif %}" style="font-weight: 600;">{{ report.diagnosis_result }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="flex-grow: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                <div style="height: 100%; width: {{ report.confidence_score*100 }}%; background: {% if report.confidence_score > 0.9 %}#10b981{% elif report.confidence_score > 0.7 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                            </div>
+                            <span style="font-size: 0.85rem;">{{ "%.1f"|format(report.confidence_score*100) }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('generate_pdf', report_id=report.id) }}" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; text-decoration: none;"><i class="fa-solid fa-file-pdf"></i> Download</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-secondary" style="padding: 3rem;">
+                        <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No medical records found in the database.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

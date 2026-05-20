@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OptiCore AI | Medical Intelligence{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Pro Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for real-time analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% if use_sidebar %}app-layout{% else %}landing-layout{% endif %}">
+    
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Flask Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;">
+          {% for category, message in messages %}
+            <div class="glass-effect" style="padding: 1rem 1.5rem; border-left: 4px solid {% if category == 'success' %}#10b981{% elif category == 'danger' or category == 'error' %}#ef4444{% else %}#38bdf8{% endif %}; border-radius: 8px; animation: fadeIn 0.3s ease-in-out;">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% if not use_sidebar %}
+    <!-- Public Landing Navbar -->
+    <nav class="navbar glass-effect sticky-top">
+        <div class="logo">
+            <span class="logo-icon"><i class="fa-solid fa-eye"></i></span>
+            <a href="{{ url_for('index') }}" class="no-underline">
+                <h1>OptiCore <span class="highlight">AI</span></h1>
+            </a>
+        </div>
+        <ul class="nav-links desktop-only">
+            <li><a href="{{ url_for('index') }}#features">Features</a></li>
+            <li><a href="{{ url_for('index') }}#how-it-works">How it Works</a></li>
+            <li><a href="{{ url_for('scan') }}">AI Scanner</a></li>
+            <li><a href="{{ url_for('doctors_directory') }}">Consult a Doctor</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') if current_user.role == 'patient' else url_for('doctor_dashboard') if current_user.role == 'doctor' else url_for('admin_dashboard') }}" class="btn btn-primary nav-btn">Dashboard</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline nav-btn" style="border-color: #ef4444; color: #ef4444;">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline nav-btn">Log In</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary nav-btn">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <main class="main-content flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="glass-effect text-center padding-md">
+        <p>&copy; 2026 OptiCore AI Medical Systems. All rights reserved.</p>
+        <div class="social-links mt-1">
+            <a href="#"><i class="fa-brands fa-twitter"></i></a>
+            <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="#"><i class="fa-brands fa-github"></i></a>
+        </div>
+    </footer>
+
+    {% else %}
+    <!-- App Layout (Sidebar + Topbar) -->
+    <div class="app-wrapper">
+        <aside class="sidebar glass-effect">
+            <div class="sidebar-header">
+                <span class="logo-icon"><i class="fa-solid fa-eye highlight"></i></span>
+                <h2>OptiCore AI</h2>
+            </div>
+            
+            <ul class="sidebar-nav">
+                {% block sidebar_menu %}{% endblock %}
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a class="sidebar-link" href="{{ url_for('index') }}">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Log Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="app-main">
+            <header class="topbar glass-effect">
+                <div class="topbar-search">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" placeholder="Search patients, records...">
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn active-notification" onclick="showToast('No new notifications', 'info')">
+                        <i class="fa-solid fa-bell"></i>
+                    </button>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=User&background=38bdf8&color=fff" alt="Profile" class="avatar">
+                        <div class="user-info">
+                            <span class="user-name">Welcome Back</span>
+                            <span class="user-role highlight">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="dashboard-content">
+                {% block app_content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endif %}
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

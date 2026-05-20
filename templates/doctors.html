@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% set use_sidebar = False %}
+
+{% block title %}Doctor Directory | OptiCore AI{% endblock %}
+
+{% block content %}
+<section class="padding-lg text-center" style="padding-top: 6rem; padding-bottom: 4rem;">
+    <h2>Our Network of <span class="highlight">Specialists</span></h2>
+    <p class="text-secondary mt-1 max-w-2xl mx-auto">Browse our directory of active, board-certified professionals. Book a virtual consultation right now from the comfort of your home.</p>
+</section>
+
+<div class="padding-md" style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+    {% for doc in doctors %}
+    <div class="glass-effect data-card" style="text-align: center; display: flex; flex-direction: column;">
+        <div style="background: rgba(56, 189, 248, 0.2); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #38bdf8;">
+            <i class="fa-solid fa-user-doctor"></i>
+        </div>
+        <h3 style="margin-bottom: 0.5rem;">Dr. {{ doc.full_name }}</h3>
+        <p class="text-accent" style="font-weight: 500; margin-bottom: 1rem;">{{ doc.specialty or 'General Practice' }}</p>
+        <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 1.5rem; flex-grow: 1;">{{ doc.bio or 'Board certified medical professional ready to assist with your diagnosis and treatment plan.' }}</p>
+        
+        {% if current_user.is_authenticated and current_user.role == 'patient' %}
+        <button onclick="document.getElementById('bookModal-{{ doc.id }}').showModal()" class="btn btn-primary w-full"><i class="fa-solid fa-calendar-plus"></i> Book Appointment</button>
+        
+        <dialog id="bookModal-{{ doc.id }}" class="glass-effect" style="border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 2rem; width: 90%; max-width: 500px; background: #0f172a; color: white;">
+            <div class="flex" style="justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;">Book with Dr. {{ doc.full_name }}</h3>
+                <button onclick="document.getElementById('bookModal-{{ doc.id }}').close()" style="background: none; border: none; color: #ef4444; font-size: 1.5rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form action="{{ url_for('book_appointment') }}" method="POST" style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
+                <input type="hidden" name="doctor_id" value="{{ doc.id }}">
+                <div>
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; color: #94a3b8;">Date & Time</label>
+                    <input type="datetime-local" name="appointment_date" class="form-input" style="width: 100%;" required>
+                </div>
+                <div>
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; color: #94a3b8;">Reason / Notes</label>
+                    <input type="text" name="notes" class="form-input" style="width: 100%;" placeholder="e.g., Routine checkup, Vision issues...">
+                </div>
+                <button type="submit" class="btn btn-primary w-full mt-1">Confirm Booking</button>
+            </form>
+        </dialog>
+        {% elif not current_user.is_authenticated %}
+        <a href="{{ url_for('login') }}" class="btn btn-outline w-full">Log in to Book</a>
+        {% else %}
+        <button class="btn btn-outline w-full" disabled style="opacity: 0.5; cursor: not-allowed;">Patient Booking Only</button>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="glass-effect" style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+        <i class="fa-solid fa-user-slash text-secondary" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+        <h3>No Specialists Available</h3>
+        <p class="text-secondary">There are currently no active doctors in the directory. Please check back later.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    dialog::backdrop {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+    }
+</style>
+{% endblock %}

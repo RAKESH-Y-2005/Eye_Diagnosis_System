@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | OptiCore AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto;">
+    <section class="glass-effect" style="border-radius: 24px; padding: 3rem;">
+        <h2 class="result-title" style="margin-bottom: 2rem;">Create Account</h2>
+        
+        <form action="{{ url_for('register') }}" method="POST">
+            <div style="margin-bottom: 1.5rem;">
+                <label for="full_name" class="label" style="display: block; margin-bottom: 0.5rem;">Full Name</label>
+                <input type="text" id="full_name" name="full_name" required class="form-input" placeholder="John Doe">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="email" class="label" style="display: block; margin-bottom: 0.5rem;">Email Address</label>
+                <input type="email" id="email" name="email" required class="form-input" placeholder="you@example.com">
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label for="password" class="label" style="display: block; margin-bottom: 0.5rem;">Password</label>
+                <input type="password" id="password" name="password" required class="form-input" placeholder="••••••••">
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label for="role" class="label" style="display: block; margin-bottom: 0.5rem;">I am a...</label>
+                <select id="role" name="role" class="form-input" style="appearance: none;">
+                    <option value="patient">Patient</option>
+                    <option value="doctor">Doctor</option>
+                    <option value="admin">Admin / Mediator</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full">Sign Up</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary);">
+            Already have an account? <a href="{{ url_for('login') }}" style="color: #38bdf8; text-decoration: none;">Login here</a>
+        </p>
+    </section>
+</div>
+
+<style>
+    .form-input {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .form-input:focus {
+        border-color: #38bdf8;
+    }
+    .form-input option {
+        background: var(--bg-dark);
+    }
+</style>
+{% endblock %}

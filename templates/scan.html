@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% set use_sidebar = False %}
+
+{% block title %}AI Scanner | OptiCore AI{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; padding: 4rem 2rem;">
+    <div class="text-center mb-2">
+        <h2 class="hero-title" style="font-size: 3rem;">Optical <span class="highlight">Scanner</span></h2>
+        <p class="text-secondary">Upload a high-resolution retinal image below to run the prediction model.</p>
+    </div>
+
+    <section class="glass-effect p-2" style="position: relative; overflow: hidden;">
+        
+        <!-- Upload State -->
+        <div id="upload-box" class="upload-zone">
+            <input type="file" id="image-input" accept="image/*" hidden>
+            <i class="fa-solid fa-image text-secondary" style="font-size: 4rem; margin-bottom: 1.5rem;"></i>
+            <h3>Drag & Drop Retinal Scan</h3>
+            <p class="text-secondary mt-1 mb-2">JPEG, PNG, or DICOM files up to 10MB</p>
+            <button class="btn btn-outline" id="browse-btn"><i class="fa-solid fa-folder-open"></i> Browse Files</button>
+        </div>
+
+        <!-- Preview State -->
+        <div id="preview-container" class="hidden text-center">
+            <div style="position: relative; display: inline-block; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-lg);">
+                <img id="image-preview" src="" alt="Preview" style="max-height: 400px; max-width: 100%; display: block;">
+                <!-- Scanner Animation (Activated during loading) -->
+                <div id="scanner-line" class="hidden scanner-pulse"></div>
+                <!-- Heatmap Overlay -->
+                <div id="heatmap-overlay" class="hidden" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 40% 60%, rgba(239, 68, 68, 0.45) 0%, rgba(0,0,0,0) 50%); mix-blend-mode: overlay; pointer-events: none;"></div>
+            </div>
+            <div class="mt-2 flex items-center justify-center gap-1">
+                <button class="btn btn-outline" id="remove-btn"><i class="fa-solid fa-xmark"></i> Clear</button>
+                <button class="btn btn-primary" id="analyze-btn"><i class="fa-solid fa-brain"></i> Analyze Scan</button>
+            </div>
+        </div>
+
+        <!-- Processing State -->
+        <div id="loading-state" class="hidden text-center p-2">
+            <i class="fa-solid fa-circle-notch fa-spin highlight" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h3>Processing via Neural Network</h3>
+            <p class="text-secondary">Extracting spatial features and evaluating pathology signatures...</p>
+        </div>
+
+        <!-- Results State -->
+        <div id="result-container" class="hidden mt-2 animation-slide-up">
+            <div class="glass-effect" style="background: rgba(0,0,0,0.3); border-color: rgba(56, 189, 248, 0.3); padding: 1.5rem;">
+                <div class="grid-2 items-center">
+                    <div>
+                        <span class="text-secondary" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Diagnosis Result</span>
+                        <h2 id="res-disease" class="text-danger mt-1" style="font-size: 2rem;">--</h2>
+                        <p id="disease-description" class="text-secondary mt-1 text-sm">--</p>
+                    </div>
+                    <div style="text-align: right; border-left: 1px solid var(--glass-border); padding-left: 2rem;">
+                        <span class="text-secondary" style="font-size: 0.9rem; text-transform: uppercase;">Confidence Interval</span>
+                        <h2 id="res-confidence" class="highlight mt-1" style="font-size: 3rem;">--%</h2>
+                        <div class="mt-1" style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                            <div id="res-confidence-bar" style="height: 100%; width: 0%; background: var(--primary-gradient); transition: width 1s ease-out;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-2 grid-2">
+                <button class="btn btn-outline w-full" id="reset-btn"><i class="fa-solid fa-rotate-right"></i> Scan Another</button>
+                <button class="btn btn-accent w-full" onclick="showToast('Analysis saved to patient records.', 'success')"><i class="fa-solid fa-cloud-arrow-up"></i> Save to Records</button>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<style>
+    .hidden { display: none !important; }
+    .animation-slide-up { animation: slideUp 0.5s ease; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}

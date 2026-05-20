@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% set use_sidebar = True %}
+
+{% block title %}Doctor Workstation | OptiCore AI{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('doctor_dashboard') }}" class="sidebar-link active"><i class="fa-solid fa-house"></i> Overview</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fa-solid fa-user"></i> My Profile</a></li>
+<li><a href="{{ url_for('records') }}" class="sidebar-link"><i class="fa-solid fa-file-medical"></i> Patient Records</a></li>
+<li><a href="{{ url_for('consultations') }}" class="sidebar-link"><i class="fa-solid fa-calendar-check"></i> Consultations Queue</a></li>
+{% endblock %}
+
+{% block app_content %}
+<div class="flex items-center" style="justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap;">
+    <div>
+        <h2>Doctor Workstation</h2>
+        <p class="text-secondary">Manage your patient queue and review high-risk AI predictions.</p>
+    </div>
+    <div class="flex items-center gap-1">
+        <span class="text-secondary" style="font-size: 0.9rem;">Consultation Status:</span>
+        <button class="btn btn-accent" id="status-btn" onclick="toggleStatus()" style="font-size: 0.85rem; padding: 0.5rem 1rem;"><i class="fa-solid fa-check-circle"></i> Available</button>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="grid-3 mb-2">
+    <div class="glass-effect data-card flex items-center gap-1">
+        <div style="background: rgba(56, 189, 248, 0.2); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #38bdf8;">
+            <i class="fa-solid fa-user-injured"></i>
+        </div>
+        <div>
+            <p class="form-label mb-0" style="margin-bottom: 0;">Total Patients</p>
+            <h2 style="margin: 0; font-size: 2rem;">248</h2>
+        </div>
+    </div>
+    <div class="glass-effect data-card flex items-center gap-1" style="border-color: rgba(245, 158, 11, 0.4);">
+        <div style="background: rgba(245, 158, 11, 0.2); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #f59e0b;">
+            <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+            <p class="form-label mb-0" style="margin-bottom: 0;">Pending Reviews</p>
+            <h2 style="margin: 0; font-size: 2rem; color: #f59e0b;">12</h2>
+        </div>
+    </div>
+    <div class="glass-effect data-card flex items-center gap-1">
+        <div style="background: rgba(16, 185, 129, 0.2); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #10b981;">
+            <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div>
+            <p class="form-label mb-0" style="margin-bottom: 0;">Total Appointments</p>
+            <h2 style="margin: 0; font-size: 2rem;">{{ appointments|length }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="glass-effect data-card w-full">
+    <div class="flex items-center" style="justify-content: space-between; margin-bottom: 1.5rem;">
+        <h3>Recent Appointments</h3>
+        <a href="{{ url_for('consultations') }}" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem; text-decoration: none;"><i class="fa-solid fa-arrow-right"></i> View Full Triage Queue</a>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient ID</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments[:4] %}
+                <tr>
+                    <td style="font-weight: 600;"><span class="text-secondary">#APT-{{ appt.id }} | </span>Patient ID: {{ appt.patient_id }}</td>
+                    <td class="text-accent" style="font-weight: 600;">{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <span class="badge badge-{% if appt.status == 'confirmed' %}success{% elif appt.status == 'completed' %}info{% elif appt.status == 'pending' %}warning{% else %}danger{% endif %}">{{ appt.status|title }}</span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center text-secondary">No recent appointments.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let isAvailable = true;
+    function toggleStatus() {
+        isAvailable = !isAvailable;
+        const btn = document.getElementById('status-btn');
+        if(isAvailable) {
+            btn.className = "btn btn-accent";
+            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Available';
+            showToast("You are now visible to patients for bookings.", "success");
+        } else {
+            btn.className = "btn btn-outline text-danger";
+            btn.innerHTML = '<i class="fa-solid fa-ban"></i> In Surgery / Busy';
+            btn.style.borderColor = "#ef4444";
+            showToast("Status updated. Automatically rejecting new immediate bookings.", "info");
+        }
+    }
+</script>
+{% endblock %}

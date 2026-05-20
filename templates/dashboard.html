@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% set use_sidebar = True %}
+
+{% block title %}Patient Dashboard | OptiCore AI{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('dashboard') }}" class="sidebar-link active"><i class="fa-solid fa-house"></i> Overview</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fa-solid fa-user"></i> My Profile</a></li>
+<li><a href="{{ url_for('records') }}" class="sidebar-link"><i class="fa-solid fa-file-medical"></i> Medical Records</a></li>
+<li><a href="{{ url_for('consultations') }}" class="sidebar-link"><i class="fa-solid fa-calendar-check"></i> Consultations</a></li>
+<li><a href="{{ url_for('logout') }}" class="sidebar-link" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+{% endblock %}
+
+{% block app_content %}
+<div class="flex items-center" style="justify-content: space-between; margin-bottom: 2rem;">
+    <div>
+        <h2>Welcome, {{ current_user.full_name }}</h2>
+        <p class="text-secondary">Summary of your optical records and pending appointments.</p>
+    </div>
+    <a href="{{ url_for('scan') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New AI Scan</a>
+</div>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="grid-2 mb-2">
+    <!-- Consultations Widget -->
+    <div class="glass-effect data-card">
+        <h3><i class="fa-solid fa-calendar-day text-accent"></i> Upcoming Appointments</h3>
+        <div class="mt-1">
+            {% for appt in appointments %}
+                <div style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; text-align: left; margin-bottom: 1rem;">
+                    <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Appointment</h4>
+                    <p style="margin-bottom: 0.2rem; font-size: 0.9rem;"><strong>Date:</strong> {{ appt.appointment_date.strftime('%b %d, %Y %I:%M %p') }}</p>
+                    <p style="font-size: 0.9rem;"><strong>Status:</strong> 
+                        <span class="badge badge-{% if appt.status == 'confirmed' %}success{% elif appt.status == 'completed' %}info{% elif appt.status == 'pending' %}warning{% else %}danger{% endif %}">{{ appt.status|title }}</span>
+                    </p>
+                </div>
+            {% else %}
+                <div style="border: 1px solid var(--glass-border); border-radius: 12px; padding: 1.5rem; text-align: center;">
+                    <i class="fa-solid fa-calendar-xmark text-secondary" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>No upcoming appointments found.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Form -->
+    <div class="glass-effect data-card">
+        <h3>Need to see a Specialist?</h3>
+        <p class="text-secondary mt-1">Browse our network of top-rated ophthalmologists and book a virtual consultation in seconds.</p>
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('doctors_directory') }}" class="btn btn-accent w-full" style="display: inline-block; text-align: center; text-decoration: none;">
+                <i class="fa-solid fa-user-doctor"></i> Browse Doctor Directory
+            </a>
+            <a href="{{ url_for('scan') }}" class="btn btn-outline w-full mt-1" style="display: inline-block; text-align: center; text-decoration: none;">
+                <i class="fa-solid fa-camera"></i> Run Self-Scan First
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- History Table (Snippet for Dashboard) -->
+<div class="glass-effect data-card w-full">
+    <div class="flex items-center" style="justify-content: space-between; margin-bottom: 1.5rem;">
+        <h3>Recent AI Analysis Activity</h3>
+        <a href="{{ url_for('records') }}" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem; text-decoration: none;"><i class="fa-solid fa-arrow-right"></i> View Full History</a>
+    </div>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Analysis Date</th>
+                    <th>Diagnosis Result</th>
+                    <th>Confidence</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td>{{ report.created_at.strftime('%b %d, %Y') }}</td>
+                    <td class="{% if report.diagnosis_result != 'Normal' %}text-danger{% else %}text-accent{% endif %}" style="font-weight: 600;">{{ report.diagnosis_result }}</td>
+                    <td><span class="badge badge-success">{{ "%.1f"|format(report.confidence_score*100) }}%</span></td>
+                    <td><a href="{{ url_for('generate_pdf', report_id=report.id) }}" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.8rem; text-decoration: none;"><i class="fa-solid fa-download"></i> PDF</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">No AI scans history yet. <a href="{{ url_for('scan') }}" style="color: #38bdf8;">Take a scan now</a>.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

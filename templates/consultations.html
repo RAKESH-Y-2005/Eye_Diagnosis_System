@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% set use_sidebar = True %}
+
+{% block title %}Telehealth Consultations | OptiCore AI{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('dashboard') if current_user.role == 'patient' else url_for('doctor_dashboard') }}" class="sidebar-link"><i class="fa-solid fa-house"></i> Overview</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fa-solid fa-user"></i> My Profile</a></li>
+<li><a href="{{ url_for('records') }}" class="sidebar-link"><i class="fa-solid fa-file-medical"></i> Medical Records</a></li>
+<li><a href="{{ url_for('consultations') }}" class="sidebar-link active"><i class="fa-solid fa-calendar-check"></i> Consultations</a></li>
+<li><a href="{{ url_for('logout') }}" class="sidebar-link" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+{% endblock %}
+
+{% block app_content %}
+<div class="flex items-center" style="justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h2>Telehealth Meetings</h2>
+        <p class="text-secondary">Manage your upcoming and past virtual consultations.</p>
+    </div>
+    {% if current_user.role == 'patient' %}
+    <a href="{{ url_for('doctors_directory') }}" class="btn btn-primary"><i class="fa-solid fa-calendar-plus"></i> Book Specialist</a>
+    {% endif %}
+</div>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="grid-2">
+    {% for appt in appointments %}
+    <div class="glass-effect data-card" style="display: flex; flex-direction: column;">
+        <div class="flex items-center" style="justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div>
+                <h3 style="margin-bottom: 0.2rem;">Appointment #{{ appt.id }}</h3>
+                <span class="badge badge-{% if appt.status == 'confirmed' %}success{% elif appt.status == 'completed' %}info{% elif appt.status == 'pending' %}warning{% else %}danger{% endif %}">{{ appt.status|title }}</span>
+            </div>
+            <div class="text-right">
+                <p class="text-accent" style="font-weight: 600; font-size: 1.1rem; margin: 0;">{{ appt.appointment_date.strftime('%b %d, %Y') }}</p>
+                <p class="text-secondary" style="margin: 0;">{{ appt.appointment_date.strftime('%I:%M %p') }}</p>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+            {% if current_user.role == 'patient' %}
+            <p style="margin-bottom: 0.5rem;"><strong>Doctor ID:</strong> {{ appt.doctor_id }}</p>
+            {% else %}
+            <p style="margin-bottom: 0.5rem;"><strong>Patient ID:</strong> {{ appt.patient_id }}</p>
+            {% endif %}
+            
+            <p class="text-secondary" style="font-size: 0.9rem;">
+                <i class="fa-solid fa-quote-left" style="opacity: 0.5; margin-right: 0.5rem;"></i>
+                {{ appt.notes or 'No specific notes provided.' }}
+            </p>
+        </div>
+
+        <div class="flex items-center gap-1" style="margin-top: auto;">
+            {% if appt.status == 'confirmed' %}
+                <a href="{{ appt.meet_link }}" target="_blank" class="btn btn-primary w-full" style="text-align: center; text-decoration: none;"><i class="fa-solid fa-video"></i> Join Virtual Call</a>
+            {% elif appt.status == 'pending' %}
+                <button class="btn btn-outline w-full" disabled style="opacity: 0.5; cursor: not-waiting;"><i class="fa-solid fa-hourglass-half"></i> Waiting for Doctor</button>
+            {% elif appt.status == 'completed' %}
+                <button class="btn btn-outline w-full" disabled style="opacity: 0.5;"><i class="fa-solid fa-check"></i> Finished</button>
+            {% else %}
+                <button class="btn btn-outline w-full text-danger" disabled style="opacity: 0.5; border-color: #ef4444;"><i class="fa-solid fa-ban"></i> Cancelled</button>
+            {% endif %}
+
+            {% if current_user.role == 'doctor' and appt.status in ['pending', 'confirmed'] %}
+                <div style="display: flex; gap: 0.5rem; width: 100%; margin-top: 0.5rem;">
+                    {% if appt.status == 'pending' %}
+                    <form action="{{ url_for('update_appointment', app_id=appt.id) }}" method="POST" style="flex: 1;">
+                        <input type="hidden" name="status" value="confirmed">
+                        <button type="submit" class="btn btn-primary w-full" style="font-size: 0.8rem; padding: 0.5rem;">Confirm</button>
+                    </form>
+                    {% elif appt.status == 'confirmed' %}
+                    <form action="{{ url_for('update_appointment', app_id=appt.id) }}" method="POST" style="flex: 1;">
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="btn btn-primary w-full" style="font-size: 0.8rem; padding: 0.5rem;">Complete</button>
+                    </form>
+                    {% endif %}
+                    <form action="{{ url_for('update_appointment', app_id=appt.id) }}" method="POST" style="flex: 1;">
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="btn btn-outline w-full" style="font-size: 0.8rem; padding: 0.5rem; border-color: #ef4444; color: #ef4444;">Cancel</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-effect" style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+        <i class="fa-solid fa-calendar-xmark text-secondary" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+        <h3>No Appointments Found</h3>
+        <p class="text-secondary">You don't have any telehealth bookings yet.</p>
+        {% if current_user.role == 'patient' %}
+        <a href="{{ url_for('doctors_directory') }}" class="btn btn-primary mt-1" style="display: inline-block; text-decoration: none;"><i class="fa-solid fa-calendar-plus"></i> Browse Doctors</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% set use_sidebar = False %}
+
+{% block title %}OptiCore AI | Next-Gen Optical Diagnosis{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="badge badge-success mb-1" style="border: 1px solid rgba(16,185,129,0.3);"><i class="fa-solid fa-sparkles"></i> OptiCore AI Version 2.0 Live</div>
+    <h1 class="hero-title">Medical Intelligence <br>for <span class="highlight">Optical Health</span></h1>
+    <p class="hero-subtitle">Empowering ophthalmologists and patients with state-of-the-art Deep Learning models to instantly detect Cataracts, Glaucoma, and Diabetic Retinopathy from retinal scans.</p>
+    <div class="hero-cta">
+        <a href="{{ url_for('scan') }}" class="btn btn-primary"><i class="fa-solid fa-microscope"></i> Launch AI Scanner</a>
+        <a href="#how-it-works" class="btn btn-outline">Watch Demo</a>
+    </div>
+</section>
+
+<!-- Dashboard Preview Section -->
+<section class="container mb-2" style="position: relative; z-index: 10;">
+    <div class="glass-effect" style="border-radius: 24px; padding: 10px; background: rgba(0,0,0,0.4);">
+        <img src="https://images.unsplash.com/photo-1551076805-e1869033e561?q=80&w=2000&auto=format&fit=crop" style="width: 100%; border-radius: 16px; opacity: 0.6; filter: blur(2px) grayscale(50%); height: 500px; object-fit: cover;" alt="Dashboard Preview">
+        
+        <!-- Floating Elements -->
+        <div class="glass-effect" style="position: absolute; top: 10%; right: 5%; padding: 1.5rem; border-radius: 16px; width: 300px; animation: float 6s infinite ease-in-out;">
+            <div class="flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-circle-check text-accent" style="font-size: 1.5rem;"></i>
+                <div><strong style="display: block;">Analysis Complete</strong> <span class="text-secondary" style="font-size: 0.8rem;">Confidence: 98.4%</span></div>
+            </div>
+            <p><strong>Diabetic Retinopathy</strong> detected. Review recommended.</p>
+        </div>
+        
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="section-padding">
+    <div class="container">
+        <h2 class="section-title">Core <span class="highlight">Project Modules</span></h2>
+        <p class="text-center text-secondary mb-3">Our system integrates 7 comprehensive modules designed to provide an end-to-end medical solution.</p>
+        
+        <div class="grid-3">
+            <div class="glass-effect feature-card">
+                <i class="fa-solid fa-users-gear feature-icon p-2" style="color: #3b82f6;"></i>
+                <h3>User Management Module</h3>
+                <p class="text-secondary mt-1">Secure user registration, authentication, role-based access control, and intuitive profile dashboards.</p>
+            </div>
+            
+            <div class="glass-effect feature-card">
+                <i class="fa-solid fa-cloud-arrow-up feature-icon p-2" style="color: #10b981;"></i>
+                <h3>Eye Image Upload Module</h3>
+                <p class="text-secondary mt-1">Seamless and encrypted capability for patients to securely upload high-resolution retinal fundus images.</p>
+            </div>
+            
+            <div class="glass-effect feature-card">
+                <i class="fa-solid fa-brain feature-icon p-2" style="color: #8b5cf6;"></i>
+                <h3>AI Disease Detection Module</h3>
+                <p class="text-secondary mt-1">Deep learning CNN models that instantly analyze uploaded imagery to accurately detect eye pathologies.</p>
+            </div>
+            
+            <div class="glass-effect feature-card">
+                <i class="fa-solid fa-user-doctor feature-icon p-2" style="color: #f59e0b;"></i>
+                <h3>Doctor Consultation Module</h3>
+                <p class="text-secondary mt-1">Dedicated specialist directory with interactive profiles allowing patients to engage medical professionals.</p>
+            </div>
+            
+            <div class="glass-effect feature-card">
+                <i class="fa-regular fa-calendar-check feature-icon p-2" style="color: #ec4899;"></i>
+                <h3>Appointment Management Module</h3>
+                <p class="text-secondary mt-1">Robust scheduling platform for patients to book virtual or physical doctor appointments seamlessly.</p>
+            </div>
+            
+            <div class="glass-effect feature-card">
+                <i class="fa-solid fa-file-medical feature-icon p-2" style="color: #06b6d4;"></i>
+                <h3>Diagnosis Report Module</h3>
+                <p class="text-secondary mt-1">Automated generation, storage, and retrieval of comprehensive medical diagnosis reports and ML confidence metrics.</p>
+            </div>
+        </div>
+        
+        <div class="grid-1 mt-2 mx-auto" style="max-width: 500px;">
+             <div class="glass-effect feature-card text-center" style="border: 1px solid rgba(239,68,68,0.3);">
+                <i class="fa-solid fa-screwdriver-wrench feature-icon p-2" style="color: #ef4444;"></i>
+                <h3>Admin Management Module</h3>
+                <p class="text-secondary mt-1">Centralized oversight to supervise system data, securely manage user access, and oversee the platform's overall operations.</p>
+            </div>
+        </div>
+        
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="section-padding" style="background: rgba(0,0,0,0.3); border-top: 1px solid var(--glass-border);">
+    <div class="container text-center max-w-700" style="max-width: 700px; margin: 0 auto;">
+        <h2>Ready to upgrade your practice?</h2>
+        <p class="text-secondary mt-1 mb-2">Join hundreds of doctors using OptiCore AI to augment their diagnostic workflows and provide better patient care.</p>
+        <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2.5rem;">Create a Free Account</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% set use_sidebar = True %}
+
+{% block title %}My Profile | OptiCore AI{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('dashboard') if current_user.role == 'patient' else url_for('doctor_dashboard') if current_user.role == 'doctor' else url_for('admin_dashboard') }}" class="sidebar-link"><i class="fa-solid fa-house"></i> Overview</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link active"><i class="fa-solid fa-user"></i> My Profile</a></li>
+{% if current_user.role in ['patient', 'doctor'] %}
+<li><a href="{{ url_for('records') }}" class="sidebar-link"><i class="fa-solid fa-file-medical"></i> Medical Records</a></li>
+<li><a href="{{ url_for('consultations') }}" class="sidebar-link"><i class="fa-solid fa-calendar-check"></i> Consultations</a></li>
+{% endif %}
+<li><a href="{{ url_for('logout') }}" class="sidebar-link" style="color: #ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+{% endblock %}
+
+{% block app_content %}
+<div class="flex items-center" style="justify-content: space-between; margin-bottom: 2rem;">
+    <div>
+        <h2>Account Settings</h2>
+        <p class="text-secondary">Manage your personal information and preferences.</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="glass-effect data-card" style="max-width: 600px;">
+    <form action="{{ url_for('profile') }}" method="POST">
+        <div style="margin-bottom: 1.5rem;">
+            <label class="form-label">Full Name</label>
+            <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name }}" required style="background: rgba(0,0,0,0.5);">
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label class="form-label">Email Address (Cannot be changed)</label>
+            <input type="email" class="form-control" value="{{ current_user.email }}" disabled style="background: rgba(255,255,255,0.05); color: #94a3b8; cursor: not-allowed;">
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label class="form-label">Account Role</label>
+            <input type="text" class="form-control" value="{{ current_user.role|title }}" disabled style="background: rgba(255,255,255,0.05); color: #94a3b8; cursor: not-allowed;">
+        </div>
+
+        {% if current_user.role == 'doctor' %}
+        <div style="margin-bottom: 1.5rem;">
+            <label class="form-label">Medical Specialty</label>
+            <input type="text" name="specialty" class="form-control" value="{{ current_user.specialty or '' }}" style="background: rgba(0,0,0,0.5);">
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label class="form-label">Professional Bio</label>
+            <textarea name="bio" class="form-control" rows="4" style="background: rgba(0,0,0,0.5); resize: vertical;">{{ current_user.bio or '' }}</textarea>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary w-full"><i class="fa-solid fa-save"></i> Save Changes</button>
+    </form>
+</div>
+{% endblock %}
